@@ -9,10 +9,17 @@ import {
   createPermission,
 } from '@backstage/plugin-permission-common';
 import { rhAapAuthApiRef } from '@ansible/aap-app-auth';
+import { scmAuthApiRef } from '@backstage/integration-react';
+import {
+  ScmSelectorExtension,
+  type ScmSelectorData,
+} from '@ansible/portal-scaffolder-react';
+import type { FieldExtensionOptions } from '@backstage/plugin-scaffolder-react';
 import { NativeScaffolderFields } from '@ansible/portal-extension-host/alpha';
 import type { ScaffolderFieldDescriptor } from '@ansible/portal-extension-api/alpha';
 import { CONTENT_TYPES } from '@ansible/portal-extension-api';
 import { StepForm } from './StepForm';
+import { validateScmSelector } from '../../scaffolder/nativeFieldValidation';
 
 // Keep host widgets out of this test; exercise the real field loader, StepForm and RJSF.
 jest.mock('./formExtraFields', () => ({ formExtraFields: [] }));
@@ -120,9 +127,7 @@ it.each(['config', 'permission', 'loader'] as const)(
   'blocks the actual form when a referenced field fails its %s gate',
   async gate => {
     const { loader, submit } = await renderTemplate(gate);
-    await screen.findByText(
-      /Required template fields are unavailable: RepositoryInput/,
-    );
+    await screen.findByText(/Template fields are unavailable: RepositoryInput/);
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Next' }),
@@ -146,4 +151,73 @@ it('still submits a template that does not reference the withheld field', async 
       expect.objectContaining({ aapToken: 'test-token' }),
     ),
   );
+});
+
+it('blocks Next for an authenticated source-control selection with no repository name', async () => {
+  const submit = jest.fn().mockResolvedValue(undefined);
+  const nativeScmField: FieldExtensionOptions<ScmSelectorData, any> = {
+    name: 'ScmSelector',
+    component: ScmSelectorExtension,
+    validation: async (value, validation, context) => {
+      const options = context.uiSchema?.['ui:options'] as
+        | { requestUserCredentials?: unknown }
+        | undefined;
+      validateScmSelector(
+        value,
+        Boolean(options?.requestUserCredentials),
+      ).forEach(error => validation.addError(error));
+    },
+  };
+
+  await renderInTestApp(
+    <TestApiProvider
+      apis={[
+        [configApiRef, new ConfigReader({})],
+        [permissionApiRef, { authorize: jest.fn() }],
+        [rhAapAuthApiRef, { getAccessToken: jest.fn() }],
+        [
+          scmAuthApiRef,
+          { getCredentials: jest.fn().mockResolvedValue({ token: 'secret' }) },
+        ],
+      ]}
+    >
+      <StepForm
+        nativeFields={[nativeScmField]}
+        submitFunction={submit}
+        initialFormData={{
+          sourceControl: {
+            provider: 'github',
+            providerLabel: 'GitHub',
+            org: 'team',
+            repoName: '',
+          },
+        }}
+        steps={[
+          {
+            title: 'Repository',
+            schema: {
+              type: 'object',
+              properties: {
+                sourceControl: {
+                  type: 'object',
+                  title: 'Source Control Provider',
+                  'ui:field': 'ScmSelector',
+                  'ui:options': {
+                    providers: [{ provider: 'github', label: 'GitHub' }],
+                    requestUserCredentials: { secretsKey: 'USER_OAUTH_TOKEN' },
+                  },
+                },
+              },
+            },
+          },
+        ]}
+      />
+    </TestApiProvider>,
+  );
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Next' }));
+  expect(
+    await screen.findByText('Please fill in this field.'),
+  ).toBeInTheDocument();
+  expect(submit).not.toHaveBeenCalled();
 });

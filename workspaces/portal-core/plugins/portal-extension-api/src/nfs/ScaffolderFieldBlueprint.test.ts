@@ -120,6 +120,19 @@ describe('createPortalScaffolderFieldBlueprints', () => {
     expect(field.$$type).toBe('@backstage/scaffolder/FormField');
   });
 
+  it('keeps a failed lazy widget from rejecting the native form field registry', async () => {
+    const loadField = createNativeScaffolderFieldLoader(
+      makeParams(),
+      async () => {
+        throw new Error('Chunk unavailable');
+      },
+    );
+
+    await expect(loadField()).resolves.toMatchObject({
+      $$type: '@backstage/scaffolder/FormField',
+    });
+  });
+
   it('preserves legacy value and UI schemas when building native fields', () => {
     const schema = {
       returnValue: { type: 'string', default: 'https://git.example.org/repo' },

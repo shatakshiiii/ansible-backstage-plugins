@@ -20,17 +20,7 @@ describe('formExtraFields', () => {
   });
 
   const expectedFields = [
-    'AAPResourcePicker',
     'AAPTokenField',
-    'BaseImagePicker',
-    'CollectionsPicker',
-    'FileUploadPicker',
-    'PackagesPicker',
-    'MCPServersPicker',
-    'ScmSelector',
-    'AdditionalBuildStepsPicker',
-    'EEFileNamePicker',
-    'EETagsPicker',
     'EntityPicker',
     'EntityNamePicker',
     'EntityTagsPicker',
@@ -42,6 +32,23 @@ describe('formExtraFields', () => {
     'MultiEntityPicker',
     'RepoBranchPicker',
   ];
+
+  it('does not keep SDK-contributed custom pickers in the legacy host registry', () => {
+    expect(formExtraFields.map(field => field.name)).not.toEqual(
+      expect.arrayContaining([
+        'AAPResourcePicker',
+        'BaseImagePicker',
+        'CollectionsPicker',
+        'FileUploadPicker',
+        'PackagesPicker',
+        'MCPServersPicker',
+        'ScmSelector',
+        'AdditionalBuildStepsPicker',
+        'EEFileNamePicker',
+        'EETagsPicker',
+      ]),
+    );
+  });
 
   it.each(expectedFields)('includes %s field', fieldName => {
     const field = formExtraFields.find(f => f.name === fieldName);

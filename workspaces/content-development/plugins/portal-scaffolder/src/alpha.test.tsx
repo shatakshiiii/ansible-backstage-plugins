@@ -242,7 +242,7 @@ it('provides distinct native sidebar icons for the existing self-service section
   ).toBeNull();
 });
 
-it('loads contributed AAP fields through Backstage formFieldsApiRef', async () => {
+it('loads contributed custom picker fields through Backstage formFieldsApiRef', async () => {
   async function loadFieldCount(features: FrontendFeature[]) {
     cleanup();
     await renderTestApp({
@@ -267,7 +267,7 @@ it('loads contributed AAP fields through Backstage formFieldsApiRef', async () =
     nativeFormFieldsProbePlugin,
   ]);
 
-  expect(contributedFieldCount).toBe(baseFieldCount + 2);
+  expect(contributedFieldCount).toBe(baseFieldCount + 10);
 });
 
 it('discovers native fields on the real Portal wizard route and keeps the existing task/secrets flow', async () => {

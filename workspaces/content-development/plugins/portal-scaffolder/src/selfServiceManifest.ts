@@ -9,6 +9,60 @@ import { CONTENT_TYPES } from '@ansible/portal-extension-api';
  */
 export const SELF_SERVICE_API_VERSION = '0.1.0';
 
+/** Stable SDK entry points for custom fields supplied by portal-scaffolder. */
+export const scaffolderFieldEntries = [
+  {
+    fieldName: 'AAPResourcePicker',
+    id: 'portal-scaffolder.aap-resource-picker',
+    label: 'AAP resource picker',
+  },
+  {
+    fieldName: 'CollectionsPicker',
+    id: 'portal-scaffolder.collections-picker',
+    label: 'Collections picker',
+  },
+  {
+    fieldName: 'BaseImagePicker',
+    id: 'portal-scaffolder.base-image-picker',
+    label: 'Base image picker',
+  },
+  {
+    fieldName: 'FileUploadPicker',
+    id: 'portal-scaffolder.file-upload-picker',
+    label: 'File upload picker',
+  },
+  {
+    fieldName: 'PackagesPicker',
+    id: 'portal-scaffolder.packages-picker',
+    label: 'Packages picker',
+  },
+  {
+    fieldName: 'MCPServersPicker',
+    id: 'portal-scaffolder.mcp-servers-picker',
+    label: 'MCP servers picker',
+  },
+  {
+    fieldName: 'ScmSelector',
+    id: 'portal-scaffolder.scm-selector',
+    label: 'Source control selector',
+  },
+  {
+    fieldName: 'AdditionalBuildStepsPicker',
+    id: 'portal-scaffolder.additional-build-steps-picker',
+    label: 'Additional build steps picker',
+  },
+  {
+    fieldName: 'EEFileNamePicker',
+    id: 'portal-scaffolder.ee-file-name-picker',
+    label: 'Execution environment file name picker',
+  },
+  {
+    fieldName: 'EETagsPicker',
+    id: 'portal-scaffolder.ee-tags-picker',
+    label: 'Execution environment tags picker',
+  },
+] as const;
+
 /**
  * Portal-scaffolder plugin manifest — declares every capability, entitlement,
  * and operation this plugin contributes to the portal.
@@ -141,37 +195,21 @@ export const selfServiceManifest: PluginManifest = {
       id: 'portal-scaffolder.scaffolder-fields',
       ownerPlugin: 'portal-scaffolder',
       displayName: 'Scaffolder Fields',
-      description:
-        'AAP resource and collection selectors used by software templates.',
+      description: 'Custom form fields contributed for software templates.',
       appliesToContentTypes: '*',
-      entryPoints: [
-        {
-          id: 'portal-scaffolder.aap-resource-picker',
-          kind: 'scaffolder-field',
-          surface: 'experience-slot',
-          appliesToContentTypes: [
-            CONTENT_TYPES.COLLECTION,
-            CONTENT_TYPES.EXECUTION_ENVIRONMENT_DEFINITION,
-            CONTENT_TYPES.EXECUTION_ENVIRONMENT_IMAGE,
-            CONTENT_TYPES.PLAYBOOK_REPOSITORY,
-          ],
-          label: 'AAP resource picker',
-          launches: { type: 'slot', targetSlot: 'scaffolder.fields' },
-        },
-        {
-          id: 'portal-scaffolder.collections-picker',
-          kind: 'scaffolder-field',
-          surface: 'experience-slot',
-          appliesToContentTypes: [
-            CONTENT_TYPES.COLLECTION,
-            CONTENT_TYPES.EXECUTION_ENVIRONMENT_DEFINITION,
-            CONTENT_TYPES.EXECUTION_ENVIRONMENT_IMAGE,
-            CONTENT_TYPES.PLAYBOOK_REPOSITORY,
-          ],
-          label: 'Collections picker',
-          launches: { type: 'slot', targetSlot: 'scaffolder.fields' },
-        },
-      ],
+      entryPoints: scaffolderFieldEntries.map(({ id, label }) => ({
+        id,
+        kind: 'scaffolder-field' as const,
+        surface: 'experience-slot' as const,
+        appliesToContentTypes: [
+          CONTENT_TYPES.COLLECTION,
+          CONTENT_TYPES.EXECUTION_ENVIRONMENT_DEFINITION,
+          CONTENT_TYPES.EXECUTION_ENVIRONMENT_IMAGE,
+          CONTENT_TYPES.PLAYBOOK_REPOSITORY,
+        ],
+        label,
+        launches: { type: 'slot' as const, targetSlot: 'scaffolder.fields' },
+      })),
       minimumHostApiVersion: '0.1.0',
     },
   ],

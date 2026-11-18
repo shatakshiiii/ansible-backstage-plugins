@@ -38,7 +38,7 @@ interface ProviderConfig {
   apiBaseUrl?: string;
 }
 
-interface ScmSelectorOptions {
+export interface ScmSelectorOptions {
   providers?: ProviderConfig[];
   requestUserCredentials?: {
     secretsKey: string;

@@ -234,7 +234,19 @@ export function createNativeScaffolderFieldLoader<TValue, TUiOptions>(
   loader: () => Promise<FieldExtensionOptions<TValue, TUiOptions>>,
 ): () => Promise<ReturnType<typeof createFormField>> {
   return async () => {
-    const field = await loader();
+    let field: FieldExtensionOptions<TValue, TUiOptions>;
+    try {
+      field = await loader();
+    } catch {
+      const errorMessage = `Field ${params.fieldName} could not be loaded. Enable its contributing plugin or contact your administrator.`;
+      return createFormField({
+        name: params.fieldName,
+        component: () => createElement('p', { role: 'alert' }, errorMessage),
+        validation: async (_value, validation) => {
+          validation.addError(errorMessage);
+        },
+      });
+    }
     return createNativeScaffolderField(params, field);
   };
 }
